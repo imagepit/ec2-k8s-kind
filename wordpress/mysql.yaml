@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-mysql
+  labels:
+    app: wordpress-mysql
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: wordpress-mysql
+    tier: mysql
+  clusterIP: None # headless
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: mysql-pass
+data:
+  password: bXlzcWxwYXNz # mysqlpass
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: wp-mysql-pv
+  labels:
+    name: wp-mysql
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: 192.168.33.11
+    path: /var/nfs/exports/mysql
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wp-mysql-pvc
+  labels:
+    app: wordpress-mysql
+spec:
+  selector:
+    matchLabels:
+      name: wp-mysql
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-mysql
+  labels:
+    app: wordpress-mysql
+spec:
+  selector:
+    matchLabels:
+      app: wordpress-mysql
+      tier: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress-mysql
+        tier: mysql
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+          # value: mysqlpass
+        ports:
+        - containerPort: 3306
+          name: mysql
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 500m
+            memory: 500Mi
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: wp-mysql-pvc
