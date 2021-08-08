@@ -6,8 +6,8 @@ networking:
 nodes:
 - role: control-plane
   extraPortMappings:
-  - containerPort: 6433
-    hostPort: 6433
+  - containerPort: 6443
+    hostPort: 6443
 - role: worker
   extraPortMappings:
   - containerPort: 8080
