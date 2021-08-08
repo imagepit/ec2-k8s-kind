@@ -1,16 +1,16 @@
-echo net.bridge.bridge-nf-call-iptables = 1 >> /etc/sysctl.conf
-sysctl -p
-apt-get update
-apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+sudo echo net.bridge.bridge-nf-call-iptables = 1 >> /etc/sysctl.conf
+sudo sysctl -p
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
 
 # docker
 curl https://releases.rancher.com/install-docker/20.10.sh | sh
-sudo usermod -g docker vagrant
+sudo usermod -g docker ubuntu
 sudo /bin/systemctl restart docker.service
 
 # docker-compose
 sudo curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-sudo chown vagrant:vagrant /usr/local/bin/docker-compose
+sudo chown ubuntu:ubuntu /usr/local/bin/docker-compose
 sudo chmod 775 /usr/local/bin/docker-compose
 
 # kubectl
